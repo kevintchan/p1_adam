@@ -6,13 +6,13 @@ public abstract class NetworkNode implements Runnable {
   Socket outgoing;
   Socket incoming;
 
-  public NetworkNode(int inport, int outport) {
+  public NetworkNode(int inport, int outport) throws UnknownHostException, IOException {
     String host = "localhost";
     outgoing = new Socket(host, inport);
     incoming = new Socket(host, outport);
   }
 
-  public void send(Packet p) {
+  public void send(Packet p) throws IOException {
     DataOutputStream outStream = new DataOutputStream(outgoing.getOutputStream());
     p.writeTo(outStream);
   }
