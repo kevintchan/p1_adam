@@ -8,6 +8,7 @@ public class DestNode extends NetworkNode {
   }
 
   public void handlePacket(Packet p) {
+    System.out.println("DestNode Handling Packet:" + p.getId());
     Packet ackPack = new Packet(p.getId(), true);
     try {
       send(ackPack);

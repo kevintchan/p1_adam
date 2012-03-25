@@ -24,6 +24,7 @@ public class DelayNode extends NetworkNode {
             }
             Packet p = queue.poll();
             try {
+              System.out.println("DelayNode Sending Packet:" + p.getId());
               send(p);
             } catch (IOException e) {
               // do nothing
@@ -39,6 +40,7 @@ public class DelayNode extends NetworkNode {
   }
   
   public void handlePacket(Packet p) {
+    System.out.println("DelayNode Handling Packet:" + p.getId());
     queue.offer(p);
   }
 }
