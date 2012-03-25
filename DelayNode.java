@@ -1,4 +1,6 @@
 import java.util.*;
+import java.io.*;
+import java.net.*;
 import java.lang.Math;
 
 public class DelayNode extends NetworkNode {
@@ -7,7 +9,7 @@ public class DelayNode extends NetworkNode {
   
   public Queue<Packet> queue;
   
-  public DelayNode(int l, int inPort, int outPort) {
+  public DelayNode(int l, int inPort, int outPort) throws UnknownHostException, IOException {
     super(inPort, outPort);
     this.lambda = l;
     this.queue = new LinkedList<Packet>();
@@ -21,7 +23,11 @@ public class DelayNode extends NetworkNode {
               //do nothing
             }
             Packet p = queue.poll();
-            send(p);
+            try {
+              send(p);
+            } catch (IOException e) {
+              // do nothing
+            }
           }
         }
       };
