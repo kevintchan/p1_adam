@@ -1,40 +1,40 @@
+import java.util.*;
 import java.net.*;
 import java.io.*;
 
 public class SourceNode extends NetworkNode {
 
-    public HashMap<int, long> startTime;
-    public long average;
-    public long parameter;
-    public int counter;
+    public Map<Integer, Long> startTimes;
+    public double average;
+    public double parameter;
+    public int IdCounter;
 
-
-    public SourceNode(int inPort, int outPort, long parameter)  throws IOException {
-	this.startTime = new HashMap<int, long>();
-	this.counter = 0;
-	this.average = 0;
-	this.parameter = parameter;
+  public SourceNode(int inPort, int outPort, double parameter)  throws IOException {
 	super(inPort, outPort);
+	this.startTimes = new HashMap<Integer, Long>();
+	this.IdCounter = 0;
+	this.average = 10000;
+	this.parameter = parameter;
     }
 
-    public send(long startTime) {
-	packet p = new packet(IdCounter, false);
-	startTime.add(IdCounter, startTime);
+    public void send(long startTime) throws IOException {
+      System.out.println("=====================================");
+	Packet p = new Packet(IdCounter, false);
+	startTimes.put(IdCounter, startTime);
 	super.send(p);
 	IdCounter++;
     }
     
     public void handlePacket(Packet p) {
-	int id = p.getId();
-	long diff = gettimefrommain - StartTime.get(id);
-	if (diff =< 2*average) {
-	    average = (1 - parameter)*average - paramter*diff;
-	}
+      int id = p.getId();
+      System.out.println("SourceNode Handling Packet" + id);
+      long diff = System.currentTimeMillis() - startTimes.get(id).longValue();
+	if (diff <= 2*average) {
+          average = (1 - parameter)*average +  parameter*diff;
+          System.out.println("RTT: " + diff);
+          System.out.println("Avg: " + average);
+	} else {
+          System.out.println("DROPPED");
+        }
     }
-
-    public
-	
-        
-  
-    
 }

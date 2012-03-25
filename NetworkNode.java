@@ -5,11 +5,13 @@ public abstract class NetworkNode implements Runnable {
 
   Socket outgoing;
   Socket incoming;
-
-  public NetworkNode(int inport, int outport) throws UnknownHostException, IOException {
-    String host = "localhost";
-    outgoing = new Socket(host, inport);
-    incoming = new Socket(host, outport);
+  String host = "localhost";
+  int inport;
+  int outport;
+  
+  public NetworkNode(int inport, int outport) {
+    this.inport = inport;
+    this.outport = outport;
   }
 
   public void send(Packet p) throws IOException {
@@ -22,6 +24,34 @@ public abstract class NetworkNode implements Runnable {
   //**********************BACKGROUND****************//
 
   public void run() {
+    
+    try {
+      outgoing = new Socket(host, outport);
+      System.out.println("Outgoing Port "+outport+" Connected ");
+    } catch (IOException e) {
+      System.out.println("fail_connect1" + outport);
+      //do Nothing
+    }
+
+    try {
+      ServerSocket serverSocket = new ServerSocket(inport);
+      incoming = serverSocket.accept();
+      System.out.println("Incoming Port "+inport+" Connected ");
+    } catch (IOException e) {
+      //do Nothing
+    }
+    
+    while(outgoing == null) {
+      try {
+        outgoing = new Socket(host, outport);
+        System.out.println("Outgoing Port "+outport+" Connected ");
+      } catch (UnknownHostException e) {
+        System.out.println("Bad things happened");
+      } catch (IOException e) {
+        //do nothing
+      }
+    }
+    
     while (true) {
       try {
         Packet p = getNextPacket();

@@ -9,25 +9,29 @@ public class DelayNode extends NetworkNode {
   
   public Queue<Packet> queue;
   
-  public DelayNode(int l, int inPort, int outPort) throws UnknownHostException, IOException {
+  public DelayNode(int inPort, int outPort, int lambda) throws UnknownHostException, IOException {
     super(inPort, outPort);
-    this.lambda = l;
+    this.lambda = lambda;
     this.queue = new LinkedList<Packet>();
     Thread t = new Thread() {
         public void run() {
-          while (queue.peek() != null) {
-            long dTime = calculateDelayTime();
-            try {
-              sleep(dTime);
-            } catch (InterruptedException e) {
-              //do nothing
-            }
-            Packet p = queue.poll();
-            try {
-              System.out.println("DelayNode Sending Packet:" + p.getId());
-              send(p);
-            } catch (IOException e) {
-              // do nothing
+          while (true) {
+            if (queue.peek() != null) {
+              long dTime = calculateDelayTime();
+              try {
+                sleep(dTime);
+              } catch (InterruptedException e) {
+                //do nothing
+              }
+              Packet p = queue.poll();
+              try {
+                System.out.println("DelayNode Sending Packet:" + p.getId());
+                System.out.println("Delay:" + dTime);
+                System.out.println("QueueLen:" + queue.size());
+                send(p);
+              } catch (IOException e) {
+                // do nothing
+              }
             }
           }
         }
@@ -36,7 +40,7 @@ public class DelayNode extends NetworkNode {
   }
   
   public long calculateDelayTime() {
-    return (long) Math.log(1-Math.random())/(-1*lambda);
+    return (long) (Math.log(1-Math.random()) * 1000 /(-1*lambda));
   }
   
   public void handlePacket(Packet p) {

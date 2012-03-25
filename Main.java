@@ -15,9 +15,10 @@ public class Main {
     int portAD = 1051;
     int portDA = 1052;
     int lambda = 5;
+    double parameter = .01;
 
-    SourceNode s = new SourceNode(1052, 1050);
-    DelayNode a = new DelayNode(lambda, 1050, 1051);
+    SourceNode s = new SourceNode(1052, 1050, parameter);
+    DelayNode a = new DelayNode(1050, 1051, lambda);
     DestNode d = new DestNode(1051, 1052);
     
     Thread src = new Thread(s);
@@ -34,7 +35,7 @@ public class Main {
     return s;
   }
 
-  public static void runMainLoop(SourceNode s) {
+  public static void runMainLoop(SourceNode s) throws IOException {
     while (true) {
       try {
         Thread.sleep(1000);

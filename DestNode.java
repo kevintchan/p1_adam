@@ -1,9 +1,8 @@
 import java.io.*;
-import java.net.*;
 
 public class DestNode extends NetworkNode {
 
-  public DestNode(int inPort, int outPort) throws UnknownHostException, IOException  {
+  public DestNode(int inPort, int outPort) throws IOException  {
     super(inPort, outPort);
   }
 
