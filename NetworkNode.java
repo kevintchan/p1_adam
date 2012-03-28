@@ -8,29 +8,42 @@ public abstract class NetworkNode implements Runnable {
   String host = "localhost";
   int inport;
   int outport;
+  boolean establishOutConnectionFirst;;
   
   public NetworkNode(int inport, int outport) {
     this.inport = inport;
     this.outport = outport;
+    this.establishOutConnectionFirst = false;
   }
 
   public void send(Packet p) throws IOException {
     DataOutputStream outStream = new DataOutputStream(outgoing.getOutputStream());
     p.writeTo(outStream);
+    outStream.flush();
   }
 
   abstract public void handlePacket(Packet p);
 
   //**********************BACKGROUND****************//
 
+  public void setEstablishOutConnectionFirst(boolean b) {
+    this.establishOutConnectionFirst = b;
+  }
+
   public void run() {
-    
-    try {
-      outgoing = new Socket(host, outport);
-      System.out.println("Outgoing Port "+outport+" Connected ");
-    } catch (IOException e) {
-      System.out.println("fail_connect1" + outport);
-      //do Nothing
+
+    // forces a wait on the out connection, otherwise every node
+    // will listen on the in connection and the network will never
+    // be established
+    if (establishOutConnectionFirst) {
+      while (outgoing == null) {
+        try {
+          outgoing = new Socket(host, outport);
+          System.out.println("Outgoing Port "+outport+" Connected ");
+        } catch (IOException e) {
+          System.out.println("Outport Connect First Failed" + outport);
+        }
+      }
     }
 
     try {
@@ -45,13 +58,12 @@ public abstract class NetworkNode implements Runnable {
       try {
         outgoing = new Socket(host, outport);
         System.out.println("Outgoing Port "+outport+" Connected ");
-      } catch (UnknownHostException e) {
-        System.out.println("Bad things happened");
       } catch (IOException e) {
-        //do nothing
+        System.out.println("Outgoing Connect Failed");
       }
     }
-    
+
+    // the actual while loop
     while (true) {
       try {
         Packet p = getNextPacket();

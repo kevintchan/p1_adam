@@ -6,15 +6,15 @@ public class SourceNode extends NetworkNode {
 
     public Map<Integer, Long> startTimes;
     public double average;
-    public double parameter;
+    public double learningRate;
     public int IdCounter;
 
-  public SourceNode(int inPort, int outPort, double parameter)  throws IOException {
+  public SourceNode(int inPort, int outPort, double learningRate, double average) throws IOException {
 	super(inPort, outPort);
 	this.startTimes = new HashMap<Integer, Long>();
 	this.IdCounter = 0;
-	this.average = 10000;
-	this.parameter = parameter;
+	this.average = average;
+	this.learningRate = learningRate;
     }
 
     public void send(long startTime) throws IOException {
@@ -30,7 +30,7 @@ public class SourceNode extends NetworkNode {
       System.out.println("SourceNode Handling Packet" + id);
       long diff = System.currentTimeMillis() - startTimes.get(id).longValue();
 	if (diff <= 2*average) {
-          average = (1 - parameter)*average +  parameter*diff;
+          average = (1 - learningRate)*average +  learningRate*diff;
           System.out.println("RTT: " + diff);
           System.out.println("Avg: " + average);
 	} else {

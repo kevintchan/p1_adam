@@ -1,15 +1,14 @@
 import java.util.*;
 import java.io.*;
-import java.net.*;
 import java.lang.Math;
 
 public class DelayNode extends NetworkNode {
 
-  public int lambda;
+  public double lambda;
   
   public Queue<Packet> queue;
   
-  public DelayNode(int inPort, int outPort, int lambda) throws UnknownHostException, IOException {
+  public DelayNode(int inPort, int outPort, double lambda) throws IOException {
     super(inPort, outPort);
     this.lambda = lambda;
     this.queue = new LinkedList<Packet>();
