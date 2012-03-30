@@ -4,10 +4,11 @@ import java.util.*;
 public class Main {
 
   static Map<String, Double> parameters;
-  static double DEFAULT_INITIAL_AVERAGE = 3000; //in milliseconds
-  static double DEFAULT_EXPO_DIST_LAMBDA = 5; //in seconds/packet
+  static double DEFAULT_INITIAL_AVERAGE = 1000; //in milliseconds
+  static double DEFAULT_EXPO_DIST_LAMBDA = 5; //in packets/s
   static double DEFAULT_LEARNING_RATE = .01;
   static double DEFAULT_VERBOSE_LEVEL = 0;
+  static double DEFAULT_ITERATIONS = 10;
 
   public static void main(String args[]) throws IOException{
     System.out.println("begin run");
@@ -20,8 +21,23 @@ public class Main {
       System.out.println(key + "::" + parameters.get(key));
     }
 
-    SourceNode s = initializeNetwork();
-    runMainLoop(s);
+    Stenographer stenographer = new Stenographer(parameters);
+
+    List<NetworkNode> nodes = initializeNetwork(stenographer);
+    SourceNode s = (SourceNode) nodes.get(0);
+    runMainLoop(s, parameters.get("-i"));
+
+    try {
+      Thread.sleep(1000);
+    } catch (Exception e) {
+    }
+
+    stenographer.timeVsAvgDelay("tva");
+
+    for (NetworkNode n : nodes) {
+      System.out.println("Killed:"+ n.getName());
+      n.kill();
+    }
 
     System.out.println("end run");
   }
@@ -32,11 +48,10 @@ public class Main {
     parameters.put("-lmbda", DEFAULT_EXPO_DIST_LAMBDA);
     parameters.put("-lrnr8", DEFAULT_LEARNING_RATE);
     parameters.put("-verbose", DEFAULT_VERBOSE_LEVEL);
+    parameters.put("-i", DEFAULT_ITERATIONS);
 
-    if (args.length % 2 != 0) {
-      System.out.println("Require even number of arguments");
-      return false;
-    }
+    if (args.length % 2 != 0) {return false;}
+
     String param;
     double value;
     for (int i = 0; i < args.length / 2; i++) {
@@ -51,31 +66,35 @@ public class Main {
     return true;
   }
 
-  public static SourceNode initializeNetwork() throws IOException {
+  public static List<NetworkNode> initializeNetwork(Stenographer stenographer) throws IOException {
     int portSA = 1050;
     int portAD = 1051;
     int portDA = 1052;
 
     int vLvl = (int) parameters.get("-verbose").doubleValue();
+    List<NetworkNode> nodes = new ArrayList<NetworkNode>();
 
     SourceNode s = new SourceNode("SourceNode", 1052, 1050, vLvl,
                                   parameters.get("-lrnr8"),
-                                  parameters.get("-avg"));
+                                  parameters.get("-avg"), stenographer);
+    nodes.add(s);
     DelayNode a = new DelayNode("DelayNode", 1050, 1051, vLvl,
-                                parameters.get("-lmbda"));
+                                parameters.get("-lmbda"), stenographer);
+    nodes.add(a);
     DestNode d = new DestNode("DestNode", 1051, 1052, vLvl);
     d.setEstablishOutConnectionFirst(true);
+    nodes.add(d);
     Thread src = new Thread(s);
     src.start();
     Thread del = new Thread(a);
     del.start();
     Thread dest = new Thread(d);
     dest.start();
-    return s;
+    return nodes;
   }
 
-  public static void runMainLoop(SourceNode s) throws IOException {
-    while (true) {
+  public static void runMainLoop(SourceNode s, double iterations) throws IOException {
+    for (int i = 0; i < iterations; i++) {
       try {
         Thread.sleep(1000);
       } catch (InterruptedException e) {

@@ -10,7 +10,8 @@ public abstract class NetworkNode implements Runnable {
   int inport;
   int outport;
   int verboseLevel;
-  boolean establishOutConnectionFirst;;
+  boolean establishOutConnectionFirst;
+  boolean terminate;
 
   public NetworkNode(String name, int inport, int outport) {
     this(name, inport, outport, 0);
@@ -22,6 +23,7 @@ public abstract class NetworkNode implements Runnable {
     this.inport = inport;
     this.outport = outport;
     this.establishOutConnectionFirst = false;
+    this.terminate = false;
   }
 
   public void send(Packet p) throws IOException {
@@ -32,6 +34,11 @@ public abstract class NetworkNode implements Runnable {
 
   abstract public void handlePacket(Packet p);
 
+  public void kill() throws IOException {
+    terminate = true;
+    outgoing.close();
+    incoming.close();
+  }
   //**********************BACKGROUND****************//
 
   public void setEstablishOutConnectionFirst(boolean b) {
@@ -72,7 +79,7 @@ public abstract class NetworkNode implements Runnable {
     }
 
     // the actual while loop
-    while (true) {
+    while (!terminate) {
       try {
         Packet p = getNextPacket();
         handlePacket(p);
@@ -80,6 +87,7 @@ public abstract class NetworkNode implements Runnable {
         //(TODO):kchan
       }
     }
+    output(name+": terminated", 2);
   }
 
   private Packet getNextPacket() throws IOException {
@@ -87,6 +95,10 @@ public abstract class NetworkNode implements Runnable {
     Packet p = new Packet();
     p.readFrom(inStream);
     return p;
+  }
+
+  public String getName() {
+    return name;
   }
 
    public void output(String title, int value, int vLvl) {

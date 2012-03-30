@@ -4,21 +4,22 @@ import java.io.*;
 
 public class SourceNode extends NetworkNode {
 
-    public Map<Integer, Long> startTimes;
-    public double average;
-    public double learningRate;
-    public int IdCounter;
+  Map<Integer, Long> startTimes;
+  double average;
+  double learningRate;
+  int IdCounter;
+  Stenographer stenographer;
 
-  public SourceNode(String name, int inPort, int outPort, int vLvl, double learningRate, double average) throws IOException {
+  public SourceNode(String name, int inPort, int outPort, int vLvl, double learningRate, double average, Stenographer stenographer) throws IOException {
     super(name, inPort, outPort, vLvl);
 	this.startTimes = new HashMap<Integer, Long>();
 	this.IdCounter = 0;
 	this.average = average;
 	this.learningRate = learningRate;
+        this.stenographer = stenographer;
     }
 
     public void send(long startTime) throws IOException {
-      
 	Packet p = new Packet(IdCounter, false);
 	startTimes.put(IdCounter, startTime);
         output("Sending Packet", IdCounter, 0);
@@ -34,6 +35,8 @@ public class SourceNode extends NetworkNode {
           average = (1 - learningRate)*average +  learningRate*diff;
           output("RTT", diff, 1);
           output("Avg", average, 1);
+          stenographer.record(id, "RTT", diff);
+          stenographer.record(id, "Avg", average);
 	} else {
           output("PACKET DROPPED", id, 1);
         }
