@@ -33,6 +33,7 @@ public class Main {
     }
 
     stenographer.timeVsAvgDelay("tva");
+    stenographer.timeVsQueueLen("tvq");
 
     for (NetworkNode n : nodes) {
       System.out.println("Killed:"+ n.getName());
