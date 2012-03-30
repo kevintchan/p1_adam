@@ -2,17 +2,17 @@ import java.io.*;
 
 public class DestNode extends NetworkNode {
 
-  public DestNode(int inPort, int outPort) throws IOException  {
-    super(inPort, outPort);
+  public DestNode(String name, int inPort, int outPort, int vLvl) throws IOException  {
+    super(name, inPort, outPort, vLvl);
   }
 
   public void handlePacket(Packet p) {
-    System.out.println("DestNode Handling Packet:" + p.getId());
+    output("Handling Packet", p.getId(), 0);
     Packet ackPack = new Packet(p.getId(), true);
     try {
       send(ackPack);
     } catch(IOException e) {
-      System.out.println("handlePacket IOException");
+      output("handlePacket IOException", 1000);
     }
   }
 }

@@ -9,8 +9,8 @@ public class SourceNode extends NetworkNode {
     public double learningRate;
     public int IdCounter;
 
-  public SourceNode(int inPort, int outPort, double learningRate, double average) throws IOException {
-	super(inPort, outPort);
+  public SourceNode(String name, int inPort, int outPort, int vLvl, double learningRate, double average) throws IOException {
+    super(name, inPort, outPort, vLvl);
 	this.startTimes = new HashMap<Integer, Long>();
 	this.IdCounter = 0;
 	this.average = average;
@@ -18,23 +18,24 @@ public class SourceNode extends NetworkNode {
     }
 
     public void send(long startTime) throws IOException {
-      System.out.println("=====================================");
+      
 	Packet p = new Packet(IdCounter, false);
 	startTimes.put(IdCounter, startTime);
+        output("Sending Packet", IdCounter, 0);
 	super.send(p);
 	IdCounter++;
     }
     
     public void handlePacket(Packet p) {
       int id = p.getId();
-      System.out.println("SourceNode Handling Packet" + id);
+      output("Handling Packet", id, 0);
       long diff = System.currentTimeMillis() - startTimes.get(id).longValue();
 	if (diff <= 2*average) {
           average = (1 - learningRate)*average +  learningRate*diff;
-          System.out.println("RTT: " + diff);
-          System.out.println("Avg: " + average);
+          output("RTT", diff, 1);
+          output("Avg", average, 1);
 	} else {
-          System.out.println("DROPPED");
+          output("PACKET DROPPED", id, 1);
         }
     }
 }

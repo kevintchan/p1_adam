@@ -7,6 +7,7 @@ public class Main {
   static double DEFAULT_INITIAL_AVERAGE = 3000; //in milliseconds
   static double DEFAULT_EXPO_DIST_LAMBDA = 5; //in seconds/packet
   static double DEFAULT_LEARNING_RATE = .01;
+  static double DEFAULT_VERBOSE_LEVEL = 0;
 
   public static void main(String args[]) throws IOException{
     System.out.println("begin run");
@@ -30,9 +31,10 @@ public class Main {
     parameters.put("-avg", DEFAULT_INITIAL_AVERAGE);
     parameters.put("-lmbda", DEFAULT_EXPO_DIST_LAMBDA);
     parameters.put("-lrnr8", DEFAULT_LEARNING_RATE);
+    parameters.put("-verbose", DEFAULT_VERBOSE_LEVEL);
 
     if (args.length % 2 != 0) {
-      System.out.println("hi");
+      System.out.println("Require even number of arguments");
       return false;
     }
     String param;
@@ -54,11 +56,14 @@ public class Main {
     int portAD = 1051;
     int portDA = 1052;
 
-    SourceNode s = new SourceNode(1052, 1050,
+    int vLvl = (int) parameters.get("-verbose").doubleValue();
+
+    SourceNode s = new SourceNode("SourceNode", 1052, 1050, vLvl,
                                   parameters.get("-lrnr8"),
                                   parameters.get("-avg"));
-    DelayNode a = new DelayNode(1050, 1051, parameters.get("-lmbda"));
-    DestNode d = new DestNode(1051, 1052);
+    DelayNode a = new DelayNode("DelayNode", 1050, 1051, vLvl,
+                                parameters.get("-lmbda"));
+    DestNode d = new DestNode("DestNode", 1051, 1052, vLvl);
     d.setEstablishOutConnectionFirst(true);
     Thread src = new Thread(s);
     src.start();
@@ -76,6 +81,8 @@ public class Main {
       } catch (InterruptedException e) {
         //do nothing
       }
+      System.out.println("=====================================");
+
       s.send(System.currentTimeMillis());
     }
   }

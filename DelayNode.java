@@ -8,10 +8,18 @@ public class DelayNode extends NetworkNode {
   
   public Queue<Packet> queue;
   
-  public DelayNode(int inPort, int outPort, double lambda) throws IOException {
-    super(inPort, outPort);
+  public DelayNode(String name, int inPort, int outPort, double lambda) throws IOException {
+    this(name, inPort, outPort, 0, lambda);
+  }
+
+  public DelayNode(String name, int inPort, int outPort, int vLvl,  double lambda) throws IOException {
+    super(name, inPort, outPort, vLvl);
     this.lambda = lambda;
     this.queue = new LinkedList<Packet>();
+    startQueuePollingThread();
+  }
+
+  private void startQueuePollingThread() {
     Thread t = new Thread() {
         public void run() {
           while (true) {
@@ -24,9 +32,9 @@ public class DelayNode extends NetworkNode {
               }
               Packet p = queue.poll();
               try {
-                System.out.println("DelayNode Sending Packet:" + p.getId());
-                System.out.println("Delay:" + dTime);
-                System.out.println("QueueLen:" + queue.size());
+                output("Sending Packet", p.getId(), 0);
+                output("Delay", dTime, 1);
+                output("QueueLen", queue.size(), 1);
                 send(p);
               } catch (IOException e) {
                 // do nothing
@@ -43,7 +51,7 @@ public class DelayNode extends NetworkNode {
   }
   
   public void handlePacket(Packet p) {
-    System.out.println("DelayNode Handling Packet:" + p.getId());
+    output("Handling Packet", p.getId(), 0);
     queue.offer(p);
   }
 }

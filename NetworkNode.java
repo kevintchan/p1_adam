@@ -3,14 +3,22 @@ import java.io.*;
 
 public abstract class NetworkNode implements Runnable {
 
+  String name;
   Socket outgoing;
   Socket incoming;
   String host = "localhost";
   int inport;
   int outport;
+  int verboseLevel;
   boolean establishOutConnectionFirst;;
+
+  public NetworkNode(String name, int inport, int outport) {
+    this(name, inport, outport, 0);
+  }
   
-  public NetworkNode(int inport, int outport) {
+  public NetworkNode(String name, int inport, int outport, int verbose) {
+    this.verboseLevel = verbose;
+    this.name = name;
     this.inport = inport;
     this.outport = outport;
     this.establishOutConnectionFirst = false;
@@ -39,9 +47,9 @@ public abstract class NetworkNode implements Runnable {
       while (outgoing == null) {
         try {
           outgoing = new Socket(host, outport);
-          System.out.println("Outgoing Port "+outport+" Connected ");
+          output("Outgoing Port "+outport+" Connected ", 2);
         } catch (IOException e) {
-          System.out.println("Outport Connect First Failed" + outport);
+          output("Outport Connect First Failed", outport, 1000);
         }
       }
     }
@@ -49,7 +57,7 @@ public abstract class NetworkNode implements Runnable {
     try {
       ServerSocket serverSocket = new ServerSocket(inport);
       incoming = serverSocket.accept();
-      System.out.println("Incoming Port "+inport+" Connected ");
+      output("Incoming Port "+inport+" Connected ", 2);
     } catch (IOException e) {
       //do Nothing
     }
@@ -57,9 +65,9 @@ public abstract class NetworkNode implements Runnable {
     while(outgoing == null) {
       try {
         outgoing = new Socket(host, outport);
-        System.out.println("Outgoing Port "+outport+" Connected ");
+        output("Outgoing Port "+outport+" Connected ", 2);
       } catch (IOException e) {
-        System.out.println("Outgoing Connect Failed");
+        output("Outgoing Connect Failed", 1000);
       }
     }
 
@@ -79,6 +87,20 @@ public abstract class NetworkNode implements Runnable {
     Packet p = new Packet();
     p.readFrom(inStream);
     return p;
+  }
+
+   public void output(String title, int value, int vLvl) {
+    output(title+"::"+value, vLvl);
+  }
+
+   public void output(String title, double value, int vLvl) {
+    output(title+"::"+value, vLvl);
+  }
+
+   public void output(String s, int vLevel) {
+    if (vLevel >= verboseLevel) {
+      System.out.println(name+": "+s);
+    }
   }
 
 }
