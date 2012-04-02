@@ -67,7 +67,7 @@ public class Stenographer {
     public void timeVsAvgDelay(String filename) throws IOException {
 	BufferedWriter out = writeFile(filename);
 	out.write("packetId, avgDelay\n");
-	int average = 100000;
+	int average = 1000;
 	for (int i = 0; i < data.size(); i++) {
 	    PacketEntry pe = data.get(i);
 	    out.write(i +", ");
