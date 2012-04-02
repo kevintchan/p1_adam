@@ -1,0 +1,52 @@
+To Run.
+First, make sure you compile the code with:
+'javac *.java'
+
+Next, run with: 
+'java Main'
+
+Arguments are:
+
+-avg
+initial average to start exponential averaging from
+default value: 
+
+-lmbda
+rate at which packets are processed [packets/second]
+default value:
+
+-lrnr8
+learning rate of exponential averaging
+default value:
+
+-verbose
+level of verboses ness of problem
+default value: 1
+
+our version of Java was:
+java version "1.6.0_29"
+Java(TM) SE Runtime Environment (build 1.6.0_29-b11-402-10M3527)
+Java HotSpot(TM) 64-Bit Server VM (build 20.4-b02-402, mixed mode)
+
+Class Summaries
+
+Main.java
+Here is our main process.  After taking and parsing arguments, it initializes each node in the network and passes the stenographer to it.  It then enters a loop which tells the source node to send packets.
+
+Stenographer.java
+The Stenographer class is responsible for compiling data from any number of nodes in a network, and then writing relations to a file in csv format.  Currently only Time v. QueueLength and Time v. AverageDelay can be requested.
+
+NetworkNode.java
+NetworkNode is an abstract class that implements runnable so each node is an independent process.  It abstracts all the socket programming, taking only the ports which the incoming and outgoing sockets associate with.  After incoming and outgoing connections/sockets are established, it enters a loop which waits on incoming packets.  It implements send(Packet p) while leaving handlePacket(Packet p) to its children.
+
+Packet.java
+A data abstraction class, packet is currently simply a packet id and a boolean of whether or not this packet is an ACK.  It can be extended to include as much information as necessary.  There are two ways to create a packet object.  The first is to use the constructor and pass in your data.  The second is to create an empty packet and call its readFrom() method passing in an input stream.  writeTo(), which writes the packet to a DataOutputStream is also implemented so changes to the data in a packet can be completely isolated in this class. 
+
+SourceNode.java
+SourceNode has a public method 'send' which takes the current system's time in milliseconds to fire a packet.  It saves the packet's starttime so that when it has to handle it again, it can compute the round trip time.  handlePacket() calculates round trip time, adds it to the exponential average, and tells both to the Stenographer.
+
+DelayNode.java
+DelayNode is responsible for calculating delay time using an independent exponential distribution for each packet.  It has a Queue in which incoming packets wait for earlier ones to be sent.  To impelment this queue and delay, DelayNode starts an additional thread to send packets when the delay time expires.  handlePacket() simply enqueues packets.
+
+DestNode.java
+DestNode which is short for destination node simply takes packets from its incoming socket  and sends them along to its outgoing socket.
