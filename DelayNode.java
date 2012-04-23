@@ -7,9 +7,11 @@ public class DelayNode extends NetworkNode {
   double lambda;
   Stenographer stenographer;
   Queue<Packet> queue;
+  int outPort;
   
-  public DelayNode(String name, int inPort, int outPort, int vLvl,  double lambda, Stenographer stenographer) throws IOException {
-    super(name, inPort, outPort, vLvl);
+  public DelayNode(String name, int inPort, int[] outPorts, int vLvl,  double lambda, Stenographer stenographer) throws IOException {
+    super(name, inPort, outPorts, vLvl);
+    this.outPort = outPorts[0];
     this.lambda = lambda;
     this.queue = new LinkedList<Packet>();
     this.stenographer = stenographer;
@@ -33,7 +35,6 @@ public class DelayNode extends NetworkNode {
                 output("Sending Packet", p.getId(), 0);
                 output("Delay", dTime, 1);
                 output("QueueLen", queueLen, 1);
-
                 send(p);
               } catch (IOException e) {
                 // do nothing
@@ -42,9 +43,14 @@ public class DelayNode extends NetworkNode {
               stenographer.record(p.getId(), "Delay", dTime);
             }
           }
+          output("Polling Thread Terminated", 0);
         }
       };
     t.start();
+  }
+
+  private void send(Packet p) throws IOException {
+    super.send(outPort, p);
   }
   
   public long calculateDelayTime() {

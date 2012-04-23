@@ -7,8 +7,14 @@ public class Main {
   static double DEFAULT_INITIAL_AVERAGE = 1000; //in milliseconds
   static double DEFAULT_EXPO_DIST_LAMBDA = 5; //in packets/s
   static double DEFAULT_LEARNING_RATE = .01;
-  static double DEFAULT_VERBOSE_LEVEL = 0;
+  static double DEFAULT_VERBOSE_LEVEL = 1;
   static double DEFAULT_ITERATIONS = 10;
+
+  static int portS1 = 1050;
+  static int portS2 = 1051;
+  static int portA = 1052;
+  static int portB = 1053;
+  static int portD = 1054;
 
   public static void main(String args[]) throws IOException{
     System.out.println("begin run");
@@ -17,15 +23,15 @@ public class Main {
       System.out.println("Problems with your arguments");
       return;
     }
+
     for (String key : parameters.keySet()) {
       System.out.println(key + "::" + parameters.get(key));
     }
 
     Stenographer stenographer = new Stenographer(parameters);
 
-    List<NetworkNode> nodes = initializeNetwork(stenographer);
-    SourceNode s = (SourceNode) nodes.get(0);
-    runMainLoop(s, parameters.get("-i"));
+    Map<Integer, NetworkNode> nodes = initializeNetwork(stenographer);
+    runMainLoop(nodes, parameters.get("-i"));
 
     try {
       Thread.sleep(1000);
@@ -35,9 +41,8 @@ public class Main {
     stenographer.timeVsAvgDelay("tva");
     stenographer.timeVsQueueLen("tvq");
 
-    for (NetworkNode n : nodes) {
-      System.out.println("Killed:"+ n.getName());
-      n.kill();
+    for (NetworkNode n : nodes.values()) {
+       n.kill();
     }
 
     System.out.println("end run");
@@ -67,34 +72,61 @@ public class Main {
     return true;
   }
 
-  public static List<NetworkNode> initializeNetwork(Stenographer stenographer) throws IOException {
-    int portSA = 1050;
-    int portAD = 1051;
-    int portDA = 1052;
+  public static Map<Integer, NetworkNode> initializeNetwork(Stenographer stenographer) throws IOException {
 
     int vLvl = (int) parameters.get("-verbose").doubleValue();
-    List<NetworkNode> nodes = new ArrayList<NetworkNode>();
+    Map<Integer, NetworkNode> nodes = new HashMap<Integer, NetworkNode>();
 
-    SourceNode s = new SourceNode("SourceNode", 1052, 1050, vLvl,
-                                  parameters.get("-lrnr8"),
-                                  parameters.get("-avg"), stenographer);
-    nodes.add(s);
-    DelayNode a = new DelayNode("DelayNode", 1050, 1051, vLvl,
+    /**
+    int[] delayPorts = new int[2];
+    delayPorts[0] = portA;
+    delayPorts[1] = portB;
+
+    int[] sourcePorts = new int[2];
+    sourcePorts[0] = portS1;
+    sourcePorts[1] = portS2;
+    **/
+
+    /*******tmp*********/
+    int[] delayPorts = new int[1];
+    delayPorts[0] = portA;
+    int[] sourcePorts = new int[1];
+    sourcePorts[0] = portS1;
+    /*************/
+
+    int[] destPortArray = new int[1];
+    destPortArray[0] = portD;
+
+    SourceNode s1 = new SourceNode("S1", portS1, delayPorts, vLvl,
+                                   parameters.get("-lrnr8"),
+                                   parameters.get("-avg"), stenographer);
+    nodes.put(portS1, s1);
+
+   
+    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl,
                                 parameters.get("-lmbda"), stenographer);
-    nodes.add(a);
-    DestNode d = new DestNode("DestNode", 1051, 1052, vLvl);
-    d.setEstablishOutConnectionFirst(true);
-    nodes.add(d);
-    Thread src = new Thread(s);
+    nodes.put(portA, a);
+
+    DestNode d = new DestNode("D", portD, sourcePorts, vLvl);
+    nodes.put(portD, d);
+
+    s1.init();
+    a.init();
+    d.init();
+
+    Thread src = new Thread(s1);
     src.start();
     Thread del = new Thread(a);
     del.start();
     Thread dest = new Thread(d);
     dest.start();
+
     return nodes;
   }
 
-  public static void runMainLoop(SourceNode s, double iterations) throws IOException {
+  public static void runMainLoop(Map<Integer, NetworkNode> nodes, double iterations) throws IOException {
+    SourceNode s = (SourceNode) nodes.get(portS1);
+    
     for (int i = 0; i < iterations; i++) {
       try {
         Thread.sleep(1000);
@@ -103,7 +135,7 @@ public class Main {
       }
       System.out.println("=====================================");
 
-      s.send(System.currentTimeMillis());
+      s.send(portA, System.currentTimeMillis());
     }
   }
 }
