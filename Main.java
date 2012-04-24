@@ -77,47 +77,45 @@ public class Main {
     int vLvl = (int) parameters.get("-verbose").doubleValue();
     Map<Integer, NetworkNode> nodes = new HashMap<Integer, NetworkNode>();
 
-    /**
     int[] delayPorts = new int[2];
     delayPorts[0] = portA;
     delayPorts[1] = portB;
-
     int[] sourcePorts = new int[2];
     sourcePorts[0] = portS1;
     sourcePorts[1] = portS2;
-    **/
-
-    /*******tmp*********/
-    int[] delayPorts = new int[1];
-    delayPorts[0] = portA;
-    int[] sourcePorts = new int[1];
-    sourcePorts[0] = portS1;
-    /*************/
-
     int[] destPortArray = new int[1];
     destPortArray[0] = portD;
-
     SourceNode s1 = new SourceNode("S1", portS1, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
                                    parameters.get("-avg"), stenographer);
     nodes.put(portS1, s1);
-
-   
-    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl,
-                                parameters.get("-lmbda"), stenographer);
+    SourceNode s2 = new SourceNode("S2", portS2, delayPorts, vLvl,
+                                   parameters.get("-lrnr8"),
+                                   parameters.get("-avg"), stenographer);
+    nodes.put(portS2, s2);
+    ServiceRateFunction aSRF = new ConstantSRF(.5);
+    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenographer);
     nodes.put(portA, a);
-
+    ServiceRateFunction bSRF = new ConstantSRF(2);
+    DelayNode b = new DelayNode("B", portB, destPortArray, vLvl, bSRF, stenographer);
+    nodes.put(portB, b);
     DestNode d = new DestNode("D", portD, sourcePorts, vLvl);
     nodes.put(portD, d);
 
     s1.init();
+    s2.init();
     a.init();
+    b.init();
     d.init();
 
-    Thread src = new Thread(s1);
-    src.start();
-    Thread del = new Thread(a);
-    del.start();
+    Thread src1 = new Thread(s1);
+    src1.start();
+    Thread src2 = new Thread(s2);
+    src2.start();
+    Thread delA = new Thread(a);
+    delA.start();
+    Thread delB = new Thread(b);
+    delB.start();
     Thread dest = new Thread(d);
     dest.start();
 
@@ -125,7 +123,8 @@ public class Main {
   }
 
   public static void runMainLoop(Map<Integer, NetworkNode> nodes, double iterations) throws IOException {
-    SourceNode s = (SourceNode) nodes.get(portS1);
+    SourceNode s1 = (SourceNode) nodes.get(portS1);
+    SourceNode s2 = (SourceNode) nodes.get(portS2);
     
     for (int i = 0; i < iterations; i++) {
       try {
@@ -135,7 +134,8 @@ public class Main {
       }
       System.out.println("=====================================");
 
-      s.send(portA, System.currentTimeMillis());
+      s1.send(System.currentTimeMillis());
+      //s2.send(System.currentTimeMillis());
     }
   }
 }

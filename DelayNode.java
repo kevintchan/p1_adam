@@ -8,9 +8,11 @@ public class DelayNode extends NetworkNode {
   Stenographer stenographer;
   Queue<Packet> queue;
   int outPort;
+  ServiceRateFunction servRateFunction;
   
-  public DelayNode(String name, int inPort, int[] outPorts, int vLvl,  double lambda, Stenographer stenographer) throws IOException {
+  public DelayNode(String name, int inPort, int[] outPorts, int vLvl, ServiceRateFunction servRateFunction , Stenographer stenographer) throws IOException {
     super(name, inPort, outPorts, vLvl);
+    this.servRateFunction = servRateFunction;
     this.outPort = outPorts[0];
     this.lambda = lambda;
     this.queue = new LinkedList<Packet>();
@@ -23,7 +25,7 @@ public class DelayNode extends NetworkNode {
         public void run() {
           while (!terminate) {
             if (queue.peek() != null) {
-              long dTime = calculateDelayTime();
+              long dTime = calculateDelayTime(System.currentTimeMillis());
               try {
                 sleep(dTime);
               } catch (InterruptedException e) {
@@ -53,8 +55,9 @@ public class DelayNode extends NetworkNode {
     super.send(outPort, p);
   }
   
-  public long calculateDelayTime() {
-    return (long) (Math.log(1-Math.random()) * 1000 /(-1*lambda));
+  public long calculateDelayTime(long time) {
+    double servicingRate = servRateFunction.get(time);
+    return (long) (Math.log(1-Math.random()) * 1000 /(-1*servicingRate));
   }
   
   public void handlePacket(Packet p) {
