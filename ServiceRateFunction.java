@@ -40,6 +40,7 @@ class SwitchingSRF extends ServiceRateFunction {
     if (normalizedTime(time) < switchTime) {
       return initialConstant;
     } else {
+	System.out.printf("switched");
       return finalConstant;
     }
   }

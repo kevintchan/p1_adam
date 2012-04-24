@@ -93,7 +93,7 @@ public class Main {
                                    parameters.get("-lrnr8"),
                                    parameters.get("-avg"), stenographer);
     nodes.put(portS2, s2);
-    ServiceRateFunction aSRF = new ConstantSRF(2);
+    ServiceRateFunction aSRF = new SwitchingSRF(.6, .6, 20000 );
     DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenographer);
     nodes.put(portA, a);
     ServiceRateFunction bSRF = new ConstantSRF(2);
