@@ -15,8 +15,9 @@ public class SourceNode extends NetworkNode {
     String currentPath;
     boolean probing;
     int probenum;
+    int stagger;
 
-    public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer) throws IOException {
+    public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer, int stagger) throws IOException {
 	super(name, port, outPorts, vLvl);
 	this.startTimes = new HashMap<Integer, Long>();
 	this.idCounter = 0;
@@ -28,6 +29,7 @@ public class SourceNode extends NetworkNode {
 	this.probePort = outPorts[1];
 	this.currentPath = "A";
 	this.probing = false;
+	this.stagger = stagger;
     }
 
     public void send(long startTime) throws IOException {
@@ -35,7 +37,7 @@ public class SourceNode extends NetworkNode {
 	startTimes.put(hash(idCounter, activePort), startTime);
 	output("Sending Packet on " + currentPath, idCounter, 0);
 	super.send(activePort, p);
-	if (idCounter % 40 == 0) {
+	if ((idCounter + stagger*60) % 120 == 0) {
 	    probing = true;
 	    probenum = 0;
         }
@@ -44,7 +46,7 @@ public class SourceNode extends NetworkNode {
 	}
         
 	idCounter++;
-	if (idCounter > 0 && (idCounter + 1) % 40 == 0) {
+	if (idCounter > 0 && (idCounter - 39 - stagger*60) % 120 == 0) {
 	    System.out.println("swapping time");
 	    System.out.println(probeAverage);
 	    System.out.println(activeAverage);
@@ -115,8 +117,8 @@ public class SourceNode extends NetworkNode {
 	activePort = tmpPort;
 
 	double tmpAvg = probeAverage;
-	probeAverage = activeAverage;
-	activeAverage = tmpAvg;
+	probeAverage = 1000;
+	activeAverage = 1000;
 
 	if (currentPath.equals("A")) {
 	    currentPath = "B";

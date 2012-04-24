@@ -5,16 +5,20 @@ public class TestCases {
   public TestCases(int testcase) {
     switch(testcase) {
     case 0:
-      a = new ConstantSRF(.3);
-      b = new ConstantSRF(2);
+      a = new ConstantSRF(.7);
+      b = new ConstantSRF(3);
       break;
     case 1:
-      a = new ConstantSRF(2);
-      b = new ConstantSRF(1);
+      a = new ConstantSRF(3);
+      b = new ConstantSRF(.5);
       break;
     case 2:
-      a = new SwitchingSRF(1,2, 10000);
-      b = new SwitchingSRF(2,1, 10000);
+      a = new SwitchingSRF(.7, 1.5, 50000);
+      b = new SwitchingSRF(1.5,.7, 50000);
+      break;
+    case 3:
+      a = new ConstantSRF(1.5);
+      b = new ConstantSRF(1.5);
       break;
     }
   }

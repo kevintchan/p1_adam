@@ -6,7 +6,7 @@ public class Main {
   static Map<String, Double> parameters;
   static double DEFAULT_INITIAL_AVERAGE = 1000; //in milliseconds
   static double DEFAULT_EXPO_DIST_LAMBDA = 5; //in packets/s
-  static double DEFAULT_LEARNING_RATE = .01;
+  static double DEFAULT_LEARNING_RATE = .1;
   static double DEFAULT_VERBOSE_LEVEL = 1;
   static double DEFAULT_ITERATIONS = 10;
   static double DEFAULT_TEST = 0;
@@ -98,11 +98,11 @@ public class Main {
     destPortArray[0] = portD;
     SourceNode s1 = new SourceNode("S1", portS1, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
-                                   parameters.get("-avg"), stenos.get("S1"));
+                                   parameters.get("-avg"), stenos.get("S1"), 0);
     nodes.put(portS1, s1);
     SourceNode s2 = new SourceNode("S2", portS2, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
-                                   parameters.get("-avg"), stenos.get("S2"));
+                                   parameters.get("-avg"), stenos.get("S2"), 1);
     nodes.put(portS2, s2);
 
     TestCases tc = new TestCases((int) parameters.get("-test").doubleValue());
@@ -151,7 +151,7 @@ public class Main {
       System.out.println("=====================================");
 
       s1.send(System.currentTimeMillis());
-      //s2.send(System.currentTimeMillis());
+      s2.send(System.currentTimeMillis());
     }
   }
 }
