@@ -5,12 +5,12 @@ import java.lang.Math;
 public class DelayNode extends NetworkNode {
 
   double lambda;
-  Stenographer stenographer;
+  Stenographer<Integer> stenographer;
   Queue<Packet> queue;
   int outPort;
   ServiceRateFunction servRateFunction;
   
-  public DelayNode(String name, int inPort, int[] outPorts, int vLvl, ServiceRateFunction servRateFunction , Stenographer stenographer) throws IOException {
+  public DelayNode(String name, int inPort, int[] outPorts, int vLvl, ServiceRateFunction servRateFunction , Stenographer<Integer> stenographer) throws IOException {
     super(name, inPort, outPorts, vLvl);
     this.servRateFunction = servRateFunction;
     this.outPort = outPorts[0];
@@ -41,8 +41,7 @@ public class DelayNode extends NetworkNode {
               } catch (IOException e) {
                 // do nothing
               }
-              stenographer.record(p.getId(), "QueueLen", queueLen);
-              stenographer.record(p.getId(), "Delay", dTime);
+              stenographer.record(queueLen);
             }
           }
           output("Polling Thread Terminated", 0);

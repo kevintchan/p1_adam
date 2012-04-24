@@ -9,6 +9,7 @@ public class Main {
   static double DEFAULT_LEARNING_RATE = .01;
   static double DEFAULT_VERBOSE_LEVEL = 1;
   static double DEFAULT_ITERATIONS = 10;
+  static double DEFAULT_TEST = 0;
 
   static int portS1 = 1050;
   static int portS2 = 1051;
@@ -28,18 +29,27 @@ public class Main {
       System.out.println(key + "::" + parameters.get(key));
     }
 
-    Stenographer stenographer = new Stenographer(parameters);
-
-    Map<Integer, NetworkNode> nodes = initializeNetwork(stenographer);
+    Map<String, Stenographer> stenos = new HashMap<String, Stenographer>();
+    Stenographer<Integer> queueLenA = new Stenographer<Integer>("QueueLength_A");
+    stenos.put("A", queueLenA);
+    Stenographer<Integer> queueLenB = new Stenographer<Integer>("QueueLength_B");
+    stenos.put("B", queueLenB);
+    Stenographer<Long> delayS1 = new Stenographer<Long>("RTT_S1");
+    stenos.put("S1", delayS1);
+    Stenographer<Long> delayS2 = new Stenographer<Long>("RTT_S2");
+    stenos.put("S2", delayS2);
+    
+    Map<Integer, NetworkNode> nodes = initializeNetwork(stenos);
     runMainLoop(nodes, parameters.get("-i"));
 
     try {
-      Thread.sleep(1000);
+      Thread.sleep(10000);
     } catch (Exception e) {
     }
 
-    stenographer.timeVsAvgDelay("tva");
-    stenographer.timeVsQueueLen("tvq");
+    for(Stenographer s: stenos.values()) {
+      s.write();
+    }
 
     for (NetworkNode n : nodes.values()) {
        n.kill();
@@ -55,6 +65,7 @@ public class Main {
     parameters.put("-lrnr8", DEFAULT_LEARNING_RATE);
     parameters.put("-verbose", DEFAULT_VERBOSE_LEVEL);
     parameters.put("-i", DEFAULT_ITERATIONS);
+    parameters.put("-test", DEFAULT_TEST);
 
     if (args.length % 2 != 0) {return false;}
 
@@ -72,7 +83,7 @@ public class Main {
     return true;
   }
 
-  public static Map<Integer, NetworkNode> initializeNetwork(Stenographer stenographer) throws IOException {
+  public static Map<Integer, NetworkNode> initializeNetwork(Map<String, Stenographer> stenos) throws IOException {
 
     int vLvl = (int) parameters.get("-verbose").doubleValue();
     Map<Integer, NetworkNode> nodes = new HashMap<Integer, NetworkNode>();
@@ -87,17 +98,22 @@ public class Main {
     destPortArray[0] = portD;
     SourceNode s1 = new SourceNode("S1", portS1, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
-                                   parameters.get("-avg"), stenographer);
+                                   parameters.get("-avg"), stenos.get("S1"));
     nodes.put(portS1, s1);
     SourceNode s2 = new SourceNode("S2", portS2, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
-                                   parameters.get("-avg"), stenographer);
+                                   parameters.get("-avg"), stenos.get("S2"));
     nodes.put(portS2, s2);
-    ServiceRateFunction aSRF = new ConstantSRF(2);
-    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenographer);
+
+
+    TestCases tc = new TestCases((int) parameters.get("-test").doubleValue());
+    ServiceRateFunction aSRF = tc.getA();
+    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenos.get("A"));
     nodes.put(portA, a);
-    ServiceRateFunction bSRF = new ConstantSRF(2);
-    DelayNode b = new DelayNode("B", portB, destPortArray, vLvl, bSRF, stenographer);
+
+
+    ServiceRateFunction bSRF = tc.getB();
+    DelayNode b = new DelayNode("B", portB, destPortArray, vLvl, bSRF, stenos.get("B"));
     nodes.put(portB, b);
     DestNode d = new DestNode("D", portD, sourcePorts, vLvl);
     nodes.put(portD, d);

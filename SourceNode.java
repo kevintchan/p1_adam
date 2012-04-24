@@ -11,10 +11,10 @@ public class SourceNode extends NetworkNode {
   double probeAverage;
   int activePort;
   int probePort;
-  Stenographer stenographer;
+  Stenographer<Long> stenographer;
   String currentPath;
 
-  public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer stenographer) throws IOException {
+  public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer) throws IOException {
     super(name, port, outPorts, vLvl);
     this.startTimes = new HashMap<Integer, Long>();
     this.idCounter = 0;
@@ -30,7 +30,7 @@ public class SourceNode extends NetworkNode {
   public void send(long startTime) throws IOException {
     Packet p = new Packet(idCounter, false, port, activePort, false);
     startTimes.put(hash(idCounter, activePort), startTime);
-    output("Sending Packet on " + currentPath, idCounter, 0);
+    output("Sending Packet on " + currentPath, idCounter, 1);
     super.send(activePort, p);
     idCounter++;
   }
@@ -56,6 +56,7 @@ public class SourceNode extends NetworkNode {
       if (!isProbe(p)) {
         average = activeAverage;
         output("Active Packet", hash, 0);
+        stenographer.record(diff);
       } else {
         average = probeAverage;
         output("Probe Packet", hash, 0);
@@ -63,17 +64,16 @@ public class SourceNode extends NetworkNode {
       
       if (diff <= 2*average) {
         average = (1 - learningRate)*average +  learningRate*diff;
-        output("AVG", average, 1);
-        stenographer.record(id, "RTT", diff);
-        stenographer.record(id, "Avg", average);
       } else {
         output("PACKET DROPPED", id, 1);
       }
       
       if (!isProbe(p)) {
         activeAverage = average;
+        output("Active AVG", activeAverage, 1);
       } else {
         probeAverage = average;
+        output("Probe AVG", probeAverage, 1);
       }
 
       if (swapCriterionMet()) {
