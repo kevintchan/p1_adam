@@ -5,7 +5,7 @@ public class TestCases {
   public TestCases(int testcase) {
     switch(testcase) {
     case 0:
-      a = new ConstantSRF(1);
+      a = new ConstantSRF(.3);
       b = new ConstantSRF(2);
     case 1:
       a = new ConstantSRF(2);
