@@ -38,7 +38,11 @@ public class Main {
     stenos.put("S1", delayS1);
     Stenographer<Long> delayS2 = new Stenographer<Long>("RTT_S2");
     stenos.put("S2", delayS2);
-    
+    Stenographer<Integer> currentPathS1 = new Stenographer<Integer>("CurrentPath_S1");
+    stenos.put("path_S1", currentPathS1);
+    Stenographer<Integer> currentPathS2 = new Stenographer<Integer>("CurrentPath_S2");
+    stenos.put("path_S2", currentPathS2);
+
     Map<Integer, NetworkNode> nodes = initializeNetwork(stenos);
     runMainLoop(nodes, parameters.get("-i"));
 
@@ -98,11 +102,13 @@ public class Main {
     destPortArray[0] = portD;
     SourceNode s1 = new SourceNode("S1", portS1, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
-                                   parameters.get("-avg"), stenos.get("S1"), 0);
+                                   parameters.get("-avg"), stenos.get("S1"), 0,
+                                   stenos.get("path_S1"));
     nodes.put(portS1, s1);
     SourceNode s2 = new SourceNode("S2", portS2, delayPorts, vLvl,
                                    parameters.get("-lrnr8"),
-                                   parameters.get("-avg"), stenos.get("S2"), 1);
+                                   parameters.get("-avg"), stenos.get("S2"), 1,
+                                   stenos.get("path_S2"));
     nodes.put(portS2, s2);
 
     TestCases tc = new TestCases((int) parameters.get("-test").doubleValue());

@@ -12,12 +12,13 @@ public class SourceNode extends NetworkNode {
     int activePort;
     int probePort;
     Stenographer<Long> stenographer;
+  Stenographer<Integer> pathSteno;
     String currentPath;
     boolean probing;
     int probenum;
     int stagger;
 
-    public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer, int stagger) throws IOException {
+  public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer, int stagger, Stenographer<Integer> pathSteno) throws IOException {
 	super(name, port, outPorts, vLvl);
 	this.startTimes = new HashMap<Integer, Long>();
 	this.idCounter = 0;
@@ -25,6 +26,7 @@ public class SourceNode extends NetworkNode {
 	this.activeAverage = average;
 	this.learningRate = learningRate;
 	this.stenographer = stenographer;
+        this.pathSteno = pathSteno;
 	this.activePort = outPorts[0];
 	this.probePort = outPorts[1];
 	this.currentPath = "A";
@@ -36,6 +38,8 @@ public class SourceNode extends NetworkNode {
 	Packet p = new Packet(idCounter, false, port, activePort, false);
 	startTimes.put(hash(idCounter, activePort), startTime);
 	output("Sending Packet on " + currentPath, idCounter, 0);
+        int path = (currentPath.equals("A")) ? 1 : 0;
+        pathSteno.record(path);
 	super.send(activePort, p);
 	if ((idCounter + stagger*60) % 120 == 0) {
 	    probing = true;
