@@ -47,38 +47,39 @@ public class SourceNode extends NetworkNode {
     int outPort = p.getOutPort();
     int hash = hash(id, outPort);
     output("Handling Packet", hash, 0);
+    if (startTimes.containsKey(hash)) {
 
-    long diff = System.currentTimeMillis() - startTimes.get(hash).longValue();
-    output("RTT", diff, 1);
-
-    double average;
-    if (!isProbe(p)) {
-      average = activeAverage;
-      output("Active Packet", hash, 0);
-    } else {
-      average = probeAverage;
-      output("Probe Packet", hash, 0);
-    }
+      long diff = System.currentTimeMillis() - startTimes.get(hash).longValue();
+      output("RTT", diff, 1);
       
-    if (diff <= 2*average) {
-      average = (1 - learningRate)*average +  learningRate*diff;
-      output("AVG", average, 1);
-      stenographer.record(id, "RTT", diff);
-      stenographer.record(id, "Avg", average);
-    } else {
-      output("PACKET DROPPED", id, 1);
-    }
+      double average;
+      if (!isProbe(p)) {
+        average = activeAverage;
+        output("Active Packet", hash, 0);
+      } else {
+        average = probeAverage;
+        output("Probe Packet", hash, 0);
+      }
+      
+      if (diff <= 2*average) {
+        average = (1 - learningRate)*average +  learningRate*diff;
+        output("AVG", average, 1);
+        stenographer.record(id, "RTT", diff);
+        stenographer.record(id, "Avg", average);
+      } else {
+        output("PACKET DROPPED", id, 1);
+      }
+      
+      if (!isProbe(p)) {
+        activeAverage = average;
+      } else {
+        probeAverage = average;
+      }
 
-    if (!isProbe(p)) {
-      activeAverage = average;
-    } else {
-      probeAverage = average;
+      if (swapCriterionMet()) {
+        swapPathes();
+      }
     }
-
-    if (swapCriterionMet()) {
-      swapPathes();
-    }
-    
   }
 
   private boolean swapCriterionMet() {
@@ -99,6 +100,7 @@ public class SourceNode extends NetworkNode {
     } else {
       currentPath = "A";
     }
+    startTimes.clear();
   }
   
   private int hash(int idCount, int port) {

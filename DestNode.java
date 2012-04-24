@@ -10,7 +10,8 @@ public class DestNode extends NetworkNode {
     output("Handling Packet", p.getId(), 0);
     int outPort = p.getSourcePort();
     output(""+outPort, 0);
-    Packet ackPack = new Packet(p.getId(), true);
+    Packet ackPack = new Packet(p.getId(), true, p.getSourcePort(),
+                                p.getOutPort(), p.isProbe());
     try {
       send(outPort, ackPack);
     } catch(IOException e) {
