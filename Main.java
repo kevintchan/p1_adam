@@ -105,7 +105,6 @@ public class Main {
                                    parameters.get("-avg"), stenos.get("S2"));
     nodes.put(portS2, s2);
 
-
     TestCases tc = new TestCases((int) parameters.get("-test").doubleValue());
     ServiceRateFunction aSRF = tc.getA();
     DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenos.get("A"));
