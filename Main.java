@@ -107,6 +107,7 @@ public class Main {
 
     TestCases tc = new TestCases((int) parameters.get("-test").doubleValue());
     ServiceRateFunction aSRF = tc.getA();
+    System.out.println(tc.getA().get(0));
     DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenos.get("A"));
     nodes.put(portA, a);
 
