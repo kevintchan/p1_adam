@@ -61,6 +61,7 @@ public class DelayNode extends NetworkNode {
   
   public void handlePacket(Packet p) {
     output("Handling Packet", p.getId(), 0);
+    output("Probe?"+p.isProbe(), 0);
     queue.offer(p);
   }
 }

@@ -24,6 +24,7 @@ public class Packet {
     this.ack = ack;
     this.sourcePort = sourcePort;
     this.outPort = outPort;
+    this.probe = probe;
   }
   
   public void readFrom(DataInputStream in) throws IOException {

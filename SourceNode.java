@@ -38,13 +38,14 @@ public class SourceNode extends NetworkNode {
 	if (idCounter % 40 == 0) {
 	    probing = true;
 	    probenum = 0;
+        }
+        if (probing) {
+          probe(startTime);
 	}
-	if (probing) {
-	    probe(startTime);
-	}
+        
 	idCounter++;
 	if (idCounter > 0 && (idCounter + 1) % 40 == 0) {
-	    System.out.printf("swapping time");
+	    System.out.println("swapping time");
 	    System.out.println(probeAverage);
 	    System.out.println(activeAverage);
 	    if (swapCriterionMet()) {
@@ -55,16 +56,16 @@ public class SourceNode extends NetworkNode {
 
     public void probe(long startTime) throws IOException {
 	if (idCounter % 5 == 0) {
-	    System.out.printf("sent probe %d", probenum); 
-	    System.out.println(probenum);
-	    Packet p = new Packet(idCounter, false, port, probePort, true);
-	    startTimes.put(hash(idCounter, probePort), startTime);
-	    output("Sending Probe Packet", idCounter, 1);
-	    super.send(probePort, p);
-	    probenum += 1;
+          Packet p = new Packet(idCounter, false, port, probePort, true);
+          startTimes.put(hash(idCounter, probePort), startTime);
+          output("Sending Probe Packet", idCounter, 1);
+          output(""+p.isProbe(), 0);
+          super.send(probePort, p);
+          probenum += 1;
 	}
 	if (probenum == 5) {
 	    probing = false;
+            probenum = 0;
 	}
     }
   
@@ -101,10 +102,6 @@ public class SourceNode extends NetworkNode {
           probeAverage = average;
           output("Probe AVG", probeAverage, 1);
         }
-        
-        if (swapCriterionMet()) {
-          swapPathes();
-        }
       }
     }
 
@@ -133,8 +130,9 @@ public class SourceNode extends NetworkNode {
 	return idCount * 10000 + port;
     }
     private boolean isProbe(Packet p) {
-	int hash = hash(p.getId(), p.getOutPort());
-	return p.isProbe() && (0 == (hash - probePort) % 10000);
+      return p.isProbe();
+      //	int hash = hash(p.getId(), p.getOutPort());
+      //	return p.isProbe() && (0 == (hash - probePort) % 10000);
     }
     
 }
