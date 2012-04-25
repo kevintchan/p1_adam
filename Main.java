@@ -32,8 +32,12 @@ public class Main {
     Map<String, Stenographer> stenos = new HashMap<String, Stenographer>();
     Stenographer<Integer> queueLenA = new Stenographer<Integer>("QueueLength_A");
     stenos.put("A", queueLenA);
+    Stenographer<Long> timeA = new Stenographer<Long>("QL_Atimes");
+    stenos.put("A_time", timeA);
     Stenographer<Integer> queueLenB = new Stenographer<Integer>("QueueLength_B");
     stenos.put("B", queueLenB);
+    Stenographer<Long> timeB = new Stenographer<Long>("QL_Btimes");
+    stenos.put("B_time", timeB);
     Stenographer<Long> delayS1 = new Stenographer<Long>("RTT_S1");
     stenos.put("S1", delayS1);
     Stenographer<Long> delayS2 = new Stenographer<Long>("RTT_S2");
@@ -114,12 +118,13 @@ public class Main {
     TestCases tc = new TestCases((int) parameters.get("-test").doubleValue());
     ServiceRateFunction aSRF = tc.getA();
     System.out.println(tc.getA().get(0));
-    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenos.get("A"));
+    DelayNode a = new DelayNode("A", portA, destPortArray, vLvl, aSRF, stenos.get("A"), stenos.get("A_time"));
     nodes.put(portA, a);
 
 
     ServiceRateFunction bSRF = tc.getB();
-    DelayNode b = new DelayNode("B", portB, destPortArray, vLvl, bSRF, stenos.get("B"));
+    DelayNode b = new DelayNode("B", portB, destPortArray, vLvl, bSRF, stenos.get("B"),
+                                stenos.get("B_time"));
     nodes.put(portB, b);
     DestNode d = new DestNode("D", portD, sourcePorts, vLvl);
     nodes.put(portD, d);

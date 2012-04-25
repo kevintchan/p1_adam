@@ -6,17 +6,19 @@ public class DelayNode extends NetworkNode {
 
   double lambda;
   Stenographer<Integer> stenographer;
+  Stenographer<Long> stenoTimes;
   Queue<Packet> queue;
   int outPort;
   ServiceRateFunction servRateFunction;
   
-  public DelayNode(String name, int inPort, int[] outPorts, int vLvl, ServiceRateFunction servRateFunction , Stenographer<Integer> stenographer) throws IOException {
+  public DelayNode(String name, int inPort, int[] outPorts, int vLvl, ServiceRateFunction servRateFunction , Stenographer<Integer> stenographer, Stenographer<Long> times) throws IOException {
     super(name, inPort, outPorts, vLvl);
     this.servRateFunction = servRateFunction;
     this.outPort = outPorts[0];
     this.lambda = lambda;
     this.queue = new LinkedList<Packet>();
     this.stenographer = stenographer;
+    this.stenoTimes = times;
     startQueuePollingThread();
   }
 
@@ -25,7 +27,8 @@ public class DelayNode extends NetworkNode {
         public void run() {
           while (!terminate) {
             if (queue.peek() != null) {
-              long dTime = calculateDelayTime(System.currentTimeMillis());
+              long currentTime = System.currentTimeMillis();
+              long dTime = calculateDelayTime(currentTime);
               try {
                 sleep(dTime);
               } catch (InterruptedException e) {
@@ -42,6 +45,7 @@ public class DelayNode extends NetworkNode {
                 // do nothing
               }
               stenographer.record(queueLen);
+              stenoTimes.record(currentTime);
             }
           }
           output("Polling Thread Terminated", 0);
