@@ -12,13 +12,14 @@ public class SourceNode extends NetworkNode {
     int activePort;
     int probePort;
     Stenographer<Long> stenographer;
+  Stenographer<Long> stenoTime;
   Stenographer<Integer> pathSteno;
     String currentPath;
     boolean probing;
     int probenum;
     int stagger;
 
-  public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer, int stagger, Stenographer<Integer> pathSteno) throws IOException {
+  public SourceNode(String name, int port, int outPorts[], int vLvl, double learningRate, double average, Stenographer<Long> stenographer, int stagger, Stenographer<Integer> pathSteno, Stenographer<Long> stenoTime) throws IOException {
 	super(name, port, outPorts, vLvl);
 	this.startTimes = new HashMap<Integer, Long>();
 	this.idCounter = 0;
@@ -26,6 +27,7 @@ public class SourceNode extends NetworkNode {
 	this.activeAverage = average;
 	this.learningRate = learningRate;
 	this.stenographer = stenographer;
+        this.stenoTime = stenoTime;
         this.pathSteno = pathSteno;
 	this.activePort = outPorts[0];
 	this.probePort = outPorts[1];
@@ -82,7 +84,8 @@ public class SourceNode extends NetworkNode {
       output("Handling Packet", hash, 0);
       if (startTimes.containsKey(hash)) {
         
-        long diff = System.currentTimeMillis() - startTimes.get(hash).longValue();
+        long currentTime = System.currentTimeMillis();
+        long diff = currentTime - startTimes.get(hash).longValue();
         output("RTT", diff, 1);
         
         double average;
@@ -90,6 +93,7 @@ public class SourceNode extends NetworkNode {
           average = activeAverage;
           output("Active Packet", hash, 0);
           stenographer.record(diff);
+          stenoTime.record(currentTime);
         } else {
           average = probeAverage;
           output("Probe Packet", hash, 0);
